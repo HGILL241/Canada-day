@@ -1,7 +1,7 @@
 // Paste your Firebase web app config here, then set USE_FIREBASE to true.
 // Firebase Console → Project settings → General → Your apps → Web app → SDK setup and configuration
 
-export const USE_FIREBASE = false;
+export const USE_FIREBASE = true;
 
 export const firebaseConfig = {
   apiKey: "PASTE_YOUR_API_KEY",
