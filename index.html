@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canada Day Crossword Sprint</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="maple-bg">🍁</div>
+  <main class="app-shell">
+    <section id="welcomeScreen" class="screen active">
+      <div class="badge">🇨🇦 Canada Day Special</div>
+      <h1>The Great Canadian Crossword Sprint</h1>
+      <p class="intro">Test your Canada knowledge in a fast 90-second challenge. Answer as many clues as you can, score points, and climb the live leaderboard.</p>
+      <div class="rules">
+        <p>🧩 10 Canada-themed clues</p>
+        <p>⏱ 90 seconds max</p>
+        <p>🏆 Fast + correct = higher score</p>
+      </div>
+      <button class="primary" id="startBtn">Start Game</button>
+    </section>
+
+    <section id="nameScreen" class="screen">
+      <h2>Enter Your Name</h2>
+      <p class="muted">This name will appear on the leaderboard.</p>
+      <input id="playerName" maxlength="24" placeholder="Your name" autocomplete="off" />
+      <button class="primary" id="playBtn">Play</button>
+      <p id="nameError" class="error"></p>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="topbar">
+        <div><span class="label">Player</span><strong id="currentPlayer">-</strong></div>
+        <div><span class="label">Score</span><strong id="scoreDisplay">0</strong></div>
+        <div><span class="label">Time</span><strong id="timerDisplay">01:30</strong></div>
+      </div>
+
+      <div class="progress"><div id="progressBar"></div></div>
+      <div class="question-card">
+        <div id="questionCount" class="question-count">1 / 10</div>
+        <h2 id="clueText">Clue</h2>
+        <input id="answerInput" placeholder="Type answer here" autocomplete="off" />
+        <button class="primary" id="submitBtn">Submit</button>
+        <button class="secondary" id="skipBtn">Skip</button>
+        <p id="feedback" class="feedback"></p>
+      </div>
+    </section>
+
+    <section id="gameOverScreen" class="screen">
+      <h1>Game Over 🍁</h1>
+      <p class="intro">Your score has been submitted to the leaderboard.</p>
+      <div class="result-card">
+        <p><strong id="finalName">Player</strong></p>
+        <p>Score: <strong id="finalScore">0</strong></p>
+        <p>Correct: <strong id="finalCorrect">0</strong> / 10</p>
+        <p>Time Used: <strong id="finalTime">0s</strong></p>
+      </div>
+      <button class="primary" id="leaderboardBtn">View Leaderboard</button>
+      <button class="secondary" id="restartBtn">Play Again</button>
+    </section>
+
+    <section id="leaderboardScreen" class="screen">
+      <h1>🏆 Live Leaderboard</h1>
+      <p class="muted">Ranked by score, then fastest time.</p>
+      <div id="leaderboardList" class="leaderboard"></div>
+      <button class="primary" id="playAgainFromBoardBtn">Play Again</button>
+    </section>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
