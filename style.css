@@ -67,12 +67,14 @@ button { padding: 16px 18px; font-weight: 900; cursor: pointer; margin-top: 10px
 .question-count { color: var(--red); font-weight: 900; }
 .result-card { background: var(--soft); border-radius: 20px; padding: 16px; margin: 18px 0; font-size: 18px; }
 .leaderboard { margin: 20px 0; }
-.rank-row { display: grid; grid-template-columns: 52px 1fr 74px 74px; gap: 10px; align-items: center; background: var(--soft); margin: 10px 0; padding: 14px; border-radius: 16px; font-weight: 800; }
+.rank-row { display: grid; grid-template-columns: 52px 1fr 80px 58px 58px; gap: 10px; align-items: center; background: var(--soft); margin: 10px 0; padding: 14px; border-radius: 16px; font-weight: 800; }
 .rank-row.me { outline: 3px solid var(--red); background: #fff; }
 .rank { font-size: 24px; }
+.rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.connection-status { display: inline-block; padding: 8px 12px; border-radius: 999px; background: var(--soft); color: var(--dark-red); font-weight: 800; font-size: 14px; }
 .empty { text-align: center; color: var(--muted); padding: 30px; }
 @media (max-width: 480px) {
   .app-shell { padding: 20px; border-radius: 22px; min-height: auto; }
   .topbar { grid-template-columns: 1fr; }
-  .rank-row { grid-template-columns: 42px 1fr 58px 58px; font-size: 14px; }
+  .rank-row { grid-template-columns: 38px 1fr 62px 44px 42px; font-size: 13px; gap: 6px; padding: 12px; }
 }

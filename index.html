@@ -14,11 +14,12 @@
       <h1>The Great Canadian Crossword Sprint</h1>
       <p class="intro">Test your Canada knowledge in a fast 90-second challenge. Answer as many clues as you can, score points, and climb the live leaderboard.</p>
       <div class="rules">
-        <p>🧩 10 Canada-themed clues</p>
+        <p>🧩 10 random Canada-themed clues</p>
         <p>⏱ 90 seconds max</p>
         <p>🏆 Fast + correct = higher score</p>
       </div>
       <button class="primary" id="startBtn">Start Game</button>
+      <button class="secondary" id="viewBoardFromWelcomeBtn">View Leaderboard</button>
     </section>
 
     <section id="nameScreen" class="screen">
@@ -53,8 +54,9 @@
       <div class="result-card">
         <p><strong id="finalName">Player</strong></p>
         <p>Score: <strong id="finalScore">0</strong></p>
-        <p>Correct: <strong id="finalCorrect">0</strong> / 10</p>
+        <p>Correct: <strong id="finalCorrect">0</strong> / <strong id="finalTotal">10</strong></p>
         <p>Time Used: <strong id="finalTime">0s</strong></p>
+        <p>Bonus: <strong id="finalBonus">0</strong></p>
       </div>
       <button class="primary" id="leaderboardBtn">View Leaderboard</button>
       <button class="secondary" id="restartBtn">Play Again</button>
@@ -63,6 +65,7 @@
     <section id="leaderboardScreen" class="screen">
       <h1>🏆 Live Leaderboard</h1>
       <p class="muted">Ranked by score, then fastest time.</p>
+      <p id="connectionStatus" class="connection-status">Loading leaderboard...</p>
       <div id="leaderboardList" class="leaderboard"></div>
       <button class="primary" id="playAgainFromBoardBtn">Play Again</button>
     </section>
