@@ -1,5 +1,5 @@
-// Canada Day Crossword Sprint — GitHub Pages + Firebase Firestore ready
-// Features: random question order every play, live leaderboard, local fallback.
+// Canada Day MCQ Challenge — GitHub Pages + Firebase Firestore ready
+// Features: MCQ format, random question order, shuffled options, live Firebase leaderboard, local fallback.
 
 import { USE_FIREBASE, firebaseConfig } from "./firebase-config.js";
 
@@ -10,10 +10,12 @@ const FIREBASE_COLLECTION = "canadaDayLeaderboard";
 let db = null;
 let firebaseReady = false;
 let firebaseFns = {};
+let unsubscribeLeaderboard = null;
 
 async function initFirebase() {
   if (!USE_FIREBASE) {
-    setConnectionStatus("Local leaderboard mode");
+    setConnectionStatus("Local leaderboard mode — Firebase is OFF");
+    loadLocalLeaderboard();
     return;
   }
 
@@ -34,36 +36,40 @@ async function initFirebase() {
     db = getFirestore(app);
     firebaseFns = { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp };
     firebaseReady = true;
-    setConnectionStatus("Live leaderboard connected");
+    setConnectionStatus("✅ Live leaderboard connected");
     listenLeaderboard();
   } catch (err) {
-    console.warn("Firebase not connected. Using local leaderboard only.", err);
-    setConnectionStatus("Firebase not connected — local mode");
+    console.error("Firebase not connected. Using local leaderboard only.", err);
+    setConnectionStatus("❌ Firebase not connected — check config/rules");
     loadLocalLeaderboard();
   }
 }
 
 const allQuestions = [
-  { clue: "Canada's capital city", answer: "ottawa", accepted: ["ottawa"] },
-  { clue: "Leaf on Canada's flag", answer: "maple", accepted: ["maple", "maple leaf"] },
-  { clue: "Canada Day month", answer: "july", accepted: ["july"] },
-  { clue: "Canada's national winter sport", answer: "hockey", accepted: ["hockey", "ice hockey"] },
-  { clue: "Famous fries, cheese curds, and gravy dish", answer: "poutine", accepted: ["poutine"] },
-  { clue: "Canada's one-dollar coin", answer: "loonie", accepted: ["loonie"] },
-  { clue: "Canada's two-dollar coin", answer: "toonie", accepted: ["toonie", "twoonie"] },
-  { clue: "Famous waterfall in Ontario", answer: "Niagara", accepted: ["niagara", "niagara falls"] },
-  { clue: "Animal known for building dams", answer: "beaver", accepted: ["beaver"] },
-  { clue: "Canada has English and French, so it is ____", answer: "bilingual", accepted: ["bilingual"] },
-  { clue: "Canada's national summer sport", answer: "lacrosse", accepted: ["lacrosse"] },
-  { clue: "Canada's largest city", answer: "Toronto", accepted: ["toronto"] },
-  { clue: "Province where Montreal is located", answer: "Quebec", accepted: ["quebec", "québec"] },
-  { clue: "Canadian police known by the red serge uniform", answer: "RCMP", accepted: ["rcmp", "mounties", "mounted police", "royal canadian mounted police"] },
-  { clue: "Canada's national anthem", answer: "O Canada", accepted: ["o canada", "ocanada"] },
-  { clue: "Canadian territory known for Arctic landscapes", answer: "Nunavut", accepted: ["nunavut"] },
-  { clue: "Mountain range in western Canada", answer: "Rockies", accepted: ["rockies", "rocky mountains", "canadian rockies"] },
-  { clue: "Canadian province famous for red sand beaches", answer: "PEI", accepted: ["pei", "prince edward island"] },
-  { clue: "Animal featured on Canada's nickel", answer: "beaver", accepted: ["beaver"] },
-  { clue: "Canada celebrates Canada Day on July ____", answer: "1", accepted: ["1", "first", "july 1", "july first"] }
+  { question: "What is Canada's capital city?", options: ["Toronto", "Ottawa", "Vancouver", "Montreal"], answer: "Ottawa" },
+  { question: "Which leaf is on Canada's flag?", options: ["Oak", "Maple", "Pine", "Birch"], answer: "Maple" },
+  { question: "Canada Day is celebrated in which month?", options: ["June", "July", "August", "September"], answer: "July" },
+  { question: "What is Canada's national winter sport?", options: ["Hockey", "Curling", "Skiing", "Basketball"], answer: "Hockey" },
+  { question: "Which Canadian dish has fries, cheese curds, and gravy?", options: ["Butter tart", "Poutine", "Nanaimo bar", "Tourtière"], answer: "Poutine" },
+  { question: "What is Canada's one-dollar coin called?", options: ["Toonie", "Loonie", "Nickel", "Quarter"], answer: "Loonie" },
+  { question: "What is Canada's two-dollar coin called?", options: ["Loonie", "Toonie", "Dime", "Penny"], answer: "Toonie" },
+  { question: "Which famous waterfall is in Ontario?", options: ["Athabasca Falls", "Niagara Falls", "Helmcken Falls", "Takakkaw Falls"], answer: "Niagara Falls" },
+  { question: "Which animal is known for building dams?", options: ["Moose", "Beaver", "Polar bear", "Goose"], answer: "Beaver" },
+  { question: "Canada has English and French as official languages, so it is…", options: ["Bilingual", "Tropical", "Monolingual", "Island-based"], answer: "Bilingual" },
+  { question: "What is Canada's national summer sport?", options: ["Soccer", "Lacrosse", "Baseball", "Volleyball"], answer: "Lacrosse" },
+  { question: "What is Canada's largest city by population?", options: ["Calgary", "Toronto", "Ottawa", "Quebec City"], answer: "Toronto" },
+  { question: "Montreal is located in which province?", options: ["Ontario", "Quebec", "Manitoba", "Alberta"], answer: "Quebec" },
+  { question: "Which Canadian police force is known for the red serge uniform?", options: ["RCMP", "OPP", "TPS", "VPD"], answer: "RCMP" },
+  { question: "What is Canada's national anthem called?", options: ["The Maple Song", "O Canada", "True North", "God Save Canada"], answer: "O Canada" },
+  { question: "Which territory is known for Arctic landscapes?", options: ["Nunavut", "Prince Edward Island", "Nova Scotia", "Saskatchewan"], answer: "Nunavut" },
+  { question: "Which mountain range is in western Canada?", options: ["Appalachians", "Rockies", "Andes", "Alps"], answer: "Rockies" },
+  { question: "Which province is famous for red sand beaches?", options: ["PEI", "Ontario", "British Columbia", "Newfoundland and Labrador"], answer: "PEI" },
+  { question: "Which animal appears on Canada's nickel?", options: ["Beaver", "Moose", "Loon", "Bear"], answer: "Beaver" },
+  { question: "Canada Day is celebrated on July…", options: ["1", "4", "15", "31"], answer: "1" },
+  { question: "How many provinces does Canada have?", options: ["8", "10", "12", "13"], answer: "10" },
+  { question: "How many territories does Canada have?", options: ["2", "3", "4", "5"], answer: "3" },
+  { question: "Which ocean is on Canada's east coast?", options: ["Pacific", "Atlantic", "Indian", "Arctic only"], answer: "Atlantic" },
+  { question: "Which city is the capital of Alberta?", options: ["Calgary", "Edmonton", "Banff", "Red Deer"], answer: "Edmonton" }
 ];
 
 let playerName = "";
@@ -76,6 +82,7 @@ let timer = null;
 let startedAt = null;
 let leaderboard = [];
 let submittedThisGame = false;
+let answerLocked = false;
 
 const $ = (id) => document.getElementById(id);
 const screens = ["welcomeScreen", "nameScreen", "gameScreen", "gameOverScreen", "leaderboardScreen"];
@@ -93,13 +100,10 @@ function shuffle(array) {
   return copy;
 }
 
-function normalize(text) {
-  return String(text)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .replace(/[^a-z0-9]/g, "");
+function prepareQuestions() {
+  return shuffle(allQuestions)
+    .slice(0, QUESTIONS_PER_GAME)
+    .map(q => ({ ...q, options: shuffle(q.options) }));
 }
 
 function formatTime(seconds) {
@@ -114,12 +118,13 @@ function setConnectionStatus(text) {
 }
 
 function startGame() {
-  gameQuestions = shuffle(allQuestions).slice(0, QUESTIONS_PER_GAME);
+  gameQuestions = prepareQuestions();
   currentIndex = 0;
   score = 0;
   correct = 0;
   timeLeft = TOTAL_TIME;
   submittedThisGame = false;
+  answerLocked = false;
   startedAt = Date.now();
 
   $("currentPlayer").textContent = playerName;
@@ -141,44 +146,47 @@ function startGame() {
 
 function loadQuestion() {
   if (currentIndex >= gameQuestions.length) return finishGame();
+  answerLocked = false;
+  const q = gameQuestions[currentIndex];
   $("questionCount").textContent = `${currentIndex + 1} / ${gameQuestions.length}`;
-  $("clueText").textContent = gameQuestions[currentIndex].clue;
-  $("answerInput").value = "";
+  $("questionText").textContent = q.question;
   $("feedback").textContent = "";
   $("feedback").className = "feedback";
-  setTimeout(() => $("answerInput").focus(), 50);
+  $("optionsList").innerHTML = q.options.map(option => `
+    <button class="option-btn" data-answer="${escapeHtml(option)}">${escapeHtml(option)}</button>
+  `).join("");
+
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.addEventListener("click", () => selectAnswer(btn.dataset.answer, btn));
+  });
 }
 
-function isCorrectAnswer(userAnswer, question) {
-  const normalizedUser = normalize(userAnswer);
-  return question.accepted.some(ans => normalize(ans) === normalizedUser);
-}
+function selectAnswer(selectedAnswer, selectedButton) {
+  if (answerLocked || currentIndex >= gameQuestions.length) return;
+  answerLocked = true;
+  const q = gameQuestions[currentIndex];
+  const isCorrect = selectedAnswer === q.answer;
 
-function submitAnswer() {
-  if (currentIndex >= gameQuestions.length) return;
-  const question = gameQuestions[currentIndex];
-  const userAnswer = $("answerInput").value;
-  if (!normalize(userAnswer)) return;
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.answer === q.answer) btn.classList.add("correct");
+  });
 
-  if (isCorrectAnswer(userAnswer, question)) {
+  if (isCorrect) {
     correct++;
     score += 10;
+    selectedButton.classList.add("correct");
     $("feedback").textContent = "Correct!";
     $("feedback").className = "feedback good";
   } else {
-    $("feedback").textContent = `Answer: ${question.answer}`;
+    selectedButton.classList.add("wrong");
+    $("feedback").textContent = `Correct answer: ${q.answer}`;
     $("feedback").className = "feedback bad";
   }
 
   $("scoreDisplay").textContent = score;
   currentIndex++;
-  setTimeout(loadQuestion, 450);
-}
-
-function skipQuestion() {
-  if (currentIndex >= gameQuestions.length) return;
-  currentIndex++;
-  loadQuestion();
+  setTimeout(loadQuestion, 650);
 }
 
 function finishGame() {
@@ -222,10 +230,11 @@ async function saveScore(entry) {
         ...entry,
         createdAtServer: serverTimestamp()
       });
+      setConnectionStatus("✅ Score saved live");
       return;
     } catch (err) {
-      console.warn("Score could not be saved to Firebase. Saving locally.", err);
-      setConnectionStatus("Firebase save failed — local mode");
+      console.error("Score could not be saved to Firebase. Saving locally.", err);
+      setConnectionStatus("❌ Firebase save failed — check Firestore rules");
     }
   }
 
@@ -239,14 +248,18 @@ async function saveScore(entry) {
 function listenLeaderboard() {
   if (!firebaseReady) return;
   const { collection, query, orderBy, limit, onSnapshot } = firebaseFns;
-  const q = query(collection(db, FIREBASE_COLLECTION), orderBy("score", "desc"), orderBy("timeUsed", "asc"), limit(25));
 
-  onSnapshot(q, (snapshot) => {
+  // IMPORTANT: only one orderBy to avoid Firebase composite-index errors on GitHub Pages.
+  const q = query(collection(db, FIREBASE_COLLECTION), orderBy("score", "desc"), limit(50));
+
+  if (unsubscribeLeaderboard) unsubscribeLeaderboard();
+  unsubscribeLeaderboard = onSnapshot(q, (snapshot) => {
     leaderboard = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setConnectionStatus("✅ Live leaderboard connected");
     renderLeaderboard();
   }, (err) => {
-    console.warn("Leaderboard listener failed.", err);
-    setConnectionStatus("Leaderboard listener failed — check Firestore rules/index");
+    console.error("Leaderboard listener failed.", err);
+    setConnectionStatus("❌ Live leaderboard failed — check Firestore rules");
     loadLocalLeaderboard();
   });
 }
@@ -259,7 +272,7 @@ function loadLocalLeaderboard() {
 function renderLeaderboard() {
   const list = $("leaderboardList");
   const sorted = [...leaderboard]
-    .sort((a, b) => b.score - a.score || a.timeUsed - b.timeUsed || b.createdAt - a.createdAt)
+    .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.timeUsed || 999) - Number(b.timeUsed || 999) || Number(b.createdAt || 0) - Number(a.createdAt || 0))
     .slice(0, 10);
 
   if (!sorted.length) {
@@ -269,7 +282,7 @@ function renderLeaderboard() {
 
   list.innerHTML = sorted.map((item, i) => {
     const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1;
-    const isMe = item.name === playerName && item.score === score && item.timeUsed <= TOTAL_TIME;
+    const isMe = item.name === playerName && Number(item.score || 0) === score && Number(item.timeUsed || 0) <= TOTAL_TIME;
     return `<div class="rank-row ${isMe ? "me" : ""}">
       <div class="rank">${medal}</div>
       <div class="rank-name">${escapeHtml(item.name || "Player")}</div>
@@ -297,13 +310,10 @@ $("playBtn").addEventListener("click", () => {
   $("nameError").textContent = "";
   startGame();
 });
-$("submitBtn").addEventListener("click", submitAnswer);
-$("skipBtn").addEventListener("click", skipQuestion);
-$("answerInput").addEventListener("keydown", e => { if (e.key === "Enter") submitAnswer(); });
+$("playerName").addEventListener("keydown", e => { if (e.key === "Enter") $("playBtn").click(); });
 $("leaderboardBtn").addEventListener("click", () => { renderLeaderboard(); showScreen("leaderboardScreen"); });
 $("restartBtn").addEventListener("click", () => showScreen("nameScreen"));
 $("playAgainFromBoardBtn").addEventListener("click", () => showScreen("nameScreen"));
 $("viewBoardFromWelcomeBtn").addEventListener("click", () => { renderLeaderboard(); showScreen("leaderboardScreen"); });
 
 initFirebase();
-loadLocalLeaderboard();

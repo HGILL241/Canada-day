@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Canada Day Crossword Sprint</title>
+  <title>Canada Day MCQ Challenge</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,12 +11,12 @@
   <main class="app-shell">
     <section id="welcomeScreen" class="screen active">
       <div class="badge">🇨🇦 Canada Day Special</div>
-      <h1>The Great Canadian Crossword Sprint</h1>
-      <p class="intro">Test your Canada knowledge in a fast 90-second challenge. Answer as many clues as you can, score points, and climb the live leaderboard.</p>
+      <h1>Canada Day MCQ Challenge</h1>
+      <p class="intro">A fast 90-second Canada-themed quiz. Questions appear in random order for every player. Choose the right answer, score points, and climb the live leaderboard.</p>
       <div class="rules">
-        <p>🧩 10 random Canada-themed clues</p>
+        <p>🎲 10 random multiple-choice questions</p>
         <p>⏱ 90 seconds max</p>
-        <p>🏆 Fast + correct = higher score</p>
+        <p>🏆 Correct + fast = higher score</p>
       </div>
       <button class="primary" id="startBtn">Start Game</button>
       <button class="secondary" id="viewBoardFromWelcomeBtn">View Leaderboard</button>
@@ -40,10 +40,8 @@
       <div class="progress"><div id="progressBar"></div></div>
       <div class="question-card">
         <div id="questionCount" class="question-count">1 / 10</div>
-        <h2 id="clueText">Clue</h2>
-        <input id="answerInput" placeholder="Type answer here" autocomplete="off" />
-        <button class="primary" id="submitBtn">Submit</button>
-        <button class="secondary" id="skipBtn">Skip</button>
+        <h2 id="questionText">Question</h2>
+        <div id="optionsList" class="options-list"></div>
         <p id="feedback" class="feedback"></p>
       </div>
     </section>
